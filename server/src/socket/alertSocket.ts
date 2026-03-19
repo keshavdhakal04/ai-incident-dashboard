@@ -12,11 +12,11 @@ export const initializeSocket = (io: SocketIOServer) => {
 
     socket.emit("alerts:count", { count: alertStore.length });
 
-    socket.on("alert:requestSuggestion", (alertId: string) => {
+    socket.on("alert:requestSuggestion", async (alertId: string) => {
       const alert = alertStore.find((a) => a.id === alertId);
       if (!alert) return;
 
-      const suggestion = generateSuggestion(alert);
+      const suggestion = await generateSuggestion(alert);
       const index = alertStore.findIndex((a) => a.id === alertId);
       alertStore[index] = {
         ...alertStore[index],
@@ -50,7 +50,7 @@ export const initializeSocket = (io: SocketIOServer) => {
   });
 
   if (!simulationInterval) {
-    simulationInterval = setInterval(() => {
+    simulationInterval = setInterval(async () => {
       if (io.engine.clientsCount === 0) return;
 
       const newAlertData = generateRandomAlert();
@@ -63,7 +63,7 @@ export const initializeSocket = (io: SocketIOServer) => {
         updatedAt: now,
       };
 
-      newAlert.suggestion = generateSuggestion(newAlert);
+      newAlert.suggestion = await generateSuggestion(newAlert);
       alertStore.unshift(newAlert);
       io.emit("alert:new", newAlert);
       console.log(`🚨 New simulated alert: ${newAlert.title}`);

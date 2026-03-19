@@ -24,20 +24,20 @@ export const createAlertRouter = (io: SocketIOServer) => {
     res.json({ success: true, data: alert });
   });
 
-  router.post("/:id/suggestion", (req: Request, res: Response) => {
-    const index = alertStore.findIndex((a) => a.id === req.params.id);
-    if (index === -1) {
-      res.status(404).json({ success: false, message: "Alert not found" });
-      return;
-    }
-    const suggestion = generateSuggestion(alertStore[index]);
-    alertStore[index] = {
-      ...alertStore[index],
-      suggestion,
-      updatedAt: new Date().toISOString(),
-    };
-    res.json({ success: true, data: alertStore[index] });
-  });
+  router.post("/:id/suggestion", async (req: Request, res: Response) => {
+  const index = alertStore.findIndex((a) => a.id === req.params.id);
+  if (index === -1) {
+    res.status(404).json({ success: false, message: "Alert not found" });
+    return;
+  }
+  const suggestion = await generateSuggestion(alertStore[index]);
+  alertStore[index] = {
+    ...alertStore[index],
+    suggestion,
+    updatedAt: new Date().toISOString(),
+  };
+  res.json({ success: true, data: alertStore[index] });
+});
 
   router.patch("/:id/status", (req: Request, res: Response) => {
     const { status } = req.body as { status: AlertStatus };

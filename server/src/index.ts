@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
@@ -6,6 +7,9 @@ import { createAlertRouter } from "./routes/alerts";
 import { initializeSocket } from "./socket/alertSocket";
 import { alertStore } from "./data/mockAlerts";
 import { generateSuggestion } from "./services/aiService";
+
+
+console.log("🔑 API Key loaded:", !!process.env.OPENAI_API_KEY);
 
 const app = express();
 const httpServer = createServer(app);
@@ -23,9 +27,13 @@ app.use(cors({
 app.use(express.json());
 
 // Pre-generate AI suggestions for seed data
-alertStore.forEach((alert, index) => {
-  alertStore[index].suggestion = generateSuggestion(alert);
-});
+(async () => {
+  console.log("🤖 Generating AI suggestions for seed alerts...");
+  for (let i = 0; i < alertStore.length; i++) {
+    alertStore[i].suggestion = await generateSuggestion(alertStore[i]);
+  }
+  console.log("✅ All seed suggestions ready");
+})();
 
 // ✅ Pass io into the router so it can broadcast
 app.use("/api/alerts", createAlertRouter(io));
