@@ -1,15 +1,43 @@
-import { useState } from "react";
-import type { Severity, AlertStatus } from "./types";
+import { useState, useCallback } from "react";
+import type { Severity, AlertStatus, Alert } from "./types";
 import { useAlerts } from "./hooks/useAlerts";
+import { useSocket } from "./hooks/useSocket";
 import { Header } from "./components/Header";
 import { AlertList } from "./components/AlertList";
 import { AlertDetail } from "./components/AlertDetail";
 
 function App() {
-  const { alerts, isLoading, error, updateAlert} = useAlerts();
+  const { alerts, isLoading, error, updateAlert, addAlert } = useAlerts();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filterSeverity, setFilterSeverity] = useState<Severity | "all">("all");
   const [filterStatus, setFilterStatus] = useState<AlertStatus | "all">("all");
+  const [isConnected, setIsConnected] = useState(false);
+
+  // ── WebSocket handlers ─────────────────────────────────────────────
+  const handleNewAlert = useCallback(
+    (alert: Alert) => {
+      addAlert(alert);
+    },
+    [addAlert]
+  );
+
+  const handleAlertUpdated = useCallback(
+    (alert: Alert) => {
+      updateAlert(alert);
+    },
+    [updateAlert]
+  );
+
+  const handleConnected = useCallback(() => setIsConnected(true), []);
+  const handleDisconnected = useCallback(() => setIsConnected(false), []);
+
+  // ── Connect to WebSocket ───────────────────────────────────────────
+  useSocket({
+    onNewAlert: handleNewAlert,
+    onAlertUpdated: handleAlertUpdated,
+    onConnected: handleConnected,
+    onDisconnected: handleDisconnected,
+  });
 
   const selectedAlert = alerts.find((a) => a.id === selectedId) ?? null;
 
@@ -18,7 +46,7 @@ function App() {
       {/* Top header bar */}
       <Header
         alertCount={alerts.length}
-        isConnected={false}
+        isConnected={isConnected}
       />
 
       {/* Main content: two-panel layout */}

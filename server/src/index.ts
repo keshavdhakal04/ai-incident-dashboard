@@ -2,7 +2,7 @@ import express from "express";
 import { createServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import cors from "cors";
-import alertRoutes from "./routes/alerts";
+import { createAlertRouter } from "./routes/alerts";
 import { initializeSocket } from "./socket/alertSocket";
 import { alertStore } from "./data/mockAlerts";
 import { generateSuggestion } from "./services/aiService";
@@ -27,7 +27,8 @@ alertStore.forEach((alert, index) => {
   alertStore[index].suggestion = generateSuggestion(alert);
 });
 
-app.use("/api/alerts", alertRoutes);
+// ✅ Pass io into the router so it can broadcast
+app.use("/api/alerts", createAlertRouter(io));
 
 app.get("/api/health", (_req, res) => {
   res.json({
