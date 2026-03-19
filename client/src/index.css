@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply bg-surface text-gray-100 font-sans antialiased;
+    background-image: 
+      radial-gradient(ellipse at 20% 50%, rgba(88, 166, 255, 0.03) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(248, 81, 73, 0.03) 0%, transparent 50%);
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-surface-secondary;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-surface-border rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-500;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-surface-secondary border border-surface-border rounded-lg;
+    backdrop-filter: blur(8px);
+  }
+
+  .severity-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-semibold uppercase tracking-wider;
+  }
+
+  .severity-low {
+    @apply severity-badge bg-accent-green/10 text-accent-green border border-accent-green/20;
+  }
+
+  .severity-medium {
+    @apply severity-badge bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20;
+  }
+
+  .severity-high {
+    @apply severity-badge bg-accent-red/10 text-accent-red border border-accent-red/20;
+  }
+
+  .btn-primary {
+    @apply px-4 py-2 rounded-md text-sm font-medium transition-all duration-150
+           bg-accent-blue text-surface hover:bg-blue-400 active:scale-95
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .btn-danger {
+    @apply px-4 py-2 rounded-md text-sm font-medium transition-all duration-150
+           bg-accent-red/10 text-accent-red border border-accent-red/30
+           hover:bg-accent-red/20 active:scale-95
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .btn-ghost {
+    @apply px-4 py-2 rounded-md text-sm font-medium transition-all duration-150
+           text-gray-400 border border-surface-border
+           hover:bg-surface-tertiary hover:text-gray-200 active:scale-95
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+}
