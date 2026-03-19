@@ -1,4 +1,3 @@
-import "dotenv/config";
 import OpenAI from "openai";
 import { v4 as uuidv4 } from "uuid";
 import { Alert, AISuggestion } from "../types";
