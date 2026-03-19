@@ -1,8 +1,10 @@
+import { useEffect, useState } from "react";
 import type { Alert } from "../types";
 
 type Props = {
   alert: Alert;
   isSelected: boolean;
+  isNew?: boolean;
   onClick: () => void;
 };
 
@@ -26,19 +28,47 @@ const formatTime = (iso: string) => {
   });
 };
 
-export const AlertCard = ({ alert, isSelected, onClick }: Props) => {
+export const AlertCard = ({ alert, isSelected, isNew = false, onClick }: Props) => {
+  const [animate, setAnimate] = useState(isNew);
+
+  useEffect(() => {
+    if (isNew) {
+      const timer = setTimeout(() => setAnimate(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isNew]);
+
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left p-4 border-b border-surface-border transition-all duration-150
-        hover:bg-surface-tertiary focus:outline-none
-        ${isSelected ? "bg-surface-tertiary border-l-2 border-l-accent-blue" : "border-l-2 border-l-transparent"}
+      className={`
+        w-full text-left p-4 border-b border-surface-border
+        transition-all duration-150 focus:outline-none
+        hover:bg-surface-tertiary
+        ${isSelected
+          ? "bg-surface-tertiary border-l-2 border-l-accent-blue"
+          : "border-l-2 border-l-transparent"
+        }
+        ${animate ? "animate-slide-in" : ""}
       `}
     >
+      {/* New alert pulse ring */}
+      {animate && (
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xs font-mono text-accent-blue uppercase tracking-widest animate-pulse">
+            ● New Alert
+          </span>
+        </div>
+      )}
+
       {/* Top row: severity dot + title + time */}
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-center gap-2 min-w-0">
-          <div className={`w-2 h-2 rounded-full shrink-0 mt-0.5 ${severityDot[alert.severity]}`} />
+          <div
+            className={`w-2 h-2 rounded-full shrink-0 mt-0.5 ${severityDot[alert.severity]}
+            ${alert.severity === "high" ? "animate-pulse" : ""}
+            `}
+          />
           <span className="text-sm font-medium text-white truncate">
             {alert.title}
           </span>
@@ -59,9 +89,7 @@ export const AlertCard = ({ alert, isSelected, onClick }: Props) => {
           <span className={`severity-${alert.severity}`}>
             {alert.severity}
           </span>
-          <span className="text-xs text-gray-600 font-mono">
-            {alert.source}
-          </span>
+          <span className="text-xs text-gray-600 font-mono">{alert.source}</span>
         </div>
         <span className={`text-xs font-mono uppercase ${statusStyles[alert.status]}`}>
           {alert.status}

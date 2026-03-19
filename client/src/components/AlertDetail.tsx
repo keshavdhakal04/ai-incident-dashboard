@@ -6,6 +6,7 @@ import { LoadingSpinner } from "./LoadingSpinner";
 type Props = {
   alert: Alert | null;
   onAlertUpdated: (alert: Alert) => void;
+  onAction: (message: string, type: "success" | "error" | "warning") => void;
 };
 
 const confidenceColor = (score: number) => {
@@ -14,17 +15,26 @@ const confidenceColor = (score: number) => {
   return "text-accent-red";
 };
 
-export const AlertDetail = ({ alert, onAlertUpdated }: Props) => {
+const statusMessages: Record<Alert["status"], string> = {
+  accepted: "Recommendation accepted — action queued",
+  rejected: "Recommendation rejected — alert flagged for review",
+  overridden: "Custom action override applied",
+  open: "Alert reopened",
+};
+
+export const AlertDetail = ({ alert, onAlertUpdated, onAction }: Props) => {
   const [isActing, setIsActing] = useState(false);
-  const [actionError, setActionError] = useState<string | null>(null);
 
   if (!alert) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-3">
-        <div className="w-12 h-12 rounded-full bg-surface-tertiary flex items-center justify-center">
-          <span className="text-2xl">🔍</span>
+        <div className="w-16 h-16 rounded-full bg-surface-tertiary flex items-center justify-center">
+          <span className="text-3xl">🔍</span>
         </div>
         <p className="text-gray-500 font-mono text-sm">Select an alert to investigate</p>
+        <p className="text-gray-700 font-mono text-xs">
+          {new Date().toLocaleDateString()} · SOC Dashboard
+        </p>
       </div>
     );
   }
@@ -32,11 +42,14 @@ export const AlertDetail = ({ alert, onAlertUpdated }: Props) => {
   const handleStatusUpdate = async (status: Alert["status"]) => {
     try {
       setIsActing(true);
-      setActionError(null);
       const updated = await alertsApi.updateStatus(alert.id, status);
       onAlertUpdated(updated);
+      onAction(
+        statusMessages[status],
+        status === "accepted" ? "success" : status === "rejected" ? "error" : "warning"
+      );
     } catch {
-      setActionError("Failed to update status. Please try again.");
+      onAction("Failed to update status. Please try again.", "error");
     } finally {
       setIsActing(false);
     }
@@ -45,7 +58,7 @@ export const AlertDetail = ({ alert, onAlertUpdated }: Props) => {
   const isResolved = alert.status !== "open";
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto">
+    <div className="flex flex-col h-full overflow-y-auto animate-fade-in">
       {/* Alert header */}
       <div className="p-6 border-b border-surface-border shrink-0">
         <div className="flex items-start justify-between gap-4 mb-3">
@@ -72,14 +85,8 @@ export const AlertDetail = ({ alert, onAlertUpdated }: Props) => {
             { label: "Status", value: alert.status.toUpperCase() },
             { label: "IP Address", value: alert.ipAddress || "N/A" },
             { label: "Affected System", value: alert.affectedSystem || "N/A" },
-            {
-              label: "Detected",
-              value: new Date(alert.createdAt).toLocaleString(),
-            },
-            {
-              label: "Last Updated",
-              value: new Date(alert.updatedAt).toLocaleString(),
-            },
+            { label: "Detected", value: new Date(alert.createdAt).toLocaleString() },
+            { label: "Last Updated", value: new Date(alert.updatedAt).toLocaleString() },
           ].map(({ label, value }) => (
             <div key={label} className="glass-panel p-3">
               <p className="text-xs font-mono text-gray-600 mb-1">{label}</p>
@@ -105,17 +112,13 @@ export const AlertDetail = ({ alert, onAlertUpdated }: Props) => {
           </div>
 
           <div className="glass-panel p-4 rounded-lg">
-            {/* Confidence bar */}
             <div className="w-full bg-surface h-1 rounded-full mb-4">
               <div
-                className="h-1 rounded-full bg-accent-blue transition-all duration-500"
+                className="h-1 rounded-full bg-accent-blue transition-all duration-700"
                 style={{ width: `${alert.suggestion.confidence}%` }}
               />
             </div>
-
-            <p className="text-white font-medium mb-2">
-              {alert.suggestion.action}
-            </p>
+            <p className="text-white font-medium mb-2">{alert.suggestion.action}</p>
             <p className="text-gray-500 text-sm leading-relaxed">
               {alert.suggestion.reasoning}
             </p>
@@ -128,12 +131,6 @@ export const AlertDetail = ({ alert, onAlertUpdated }: Props) => {
         <h3 className="text-xs font-mono text-gray-600 uppercase tracking-widest mb-3">
           Actions
         </h3>
-
-        {actionError && (
-          <div className="mb-3 p-3 rounded-lg bg-accent-red/10 border border-accent-red/20">
-            <p className="text-accent-red text-sm font-mono">{actionError}</p>
-          </div>
-        )}
 
         {isResolved ? (
           <div className="glass-panel p-4 text-center">

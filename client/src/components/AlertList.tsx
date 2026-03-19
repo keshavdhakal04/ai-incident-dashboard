@@ -7,6 +7,7 @@ type Props = {
   isLoading: boolean;
   error: string | null;
   selectedId: string | null;
+  newAlertIds: Set<string>;
   onSelect: (id: string) => void;
   filterSeverity: Severity | "all";
   filterStatus: AlertStatus | "all";
@@ -22,6 +23,7 @@ export const AlertList = ({
   isLoading,
   error,
   selectedId,
+  newAlertIds,
   onSelect,
   filterSeverity,
   filterStatus,
@@ -38,7 +40,6 @@ export const AlertList = ({
     <div className="flex flex-col h-full">
       {/* Filter bar */}
       <div className="p-3 border-b border-surface-border space-y-2 shrink-0">
-        {/* Severity filters */}
         <div className="flex gap-1">
           {severityFilters.map((f) => (
             <button
@@ -54,8 +55,6 @@ export const AlertList = ({
             </button>
           ))}
         </div>
-
-        {/* Status filters */}
         <div className="flex gap-1">
           {statusFilters.map((f) => (
             <button
@@ -95,7 +94,8 @@ export const AlertList = ({
         )}
 
         {!isLoading && !error && filtered.length === 0 && (
-          <div className="flex items-center justify-center h-32">
+          <div className="flex flex-col items-center justify-center h-32 gap-2">
+            <span className="text-2xl">🛡️</span>
             <p className="text-gray-600 font-mono text-sm">No alerts match filters</p>
           </div>
         )}
@@ -106,6 +106,7 @@ export const AlertList = ({
               key={alert.id}
               alert={alert}
               isSelected={alert.id === selectedId}
+              isNew={newAlertIds.has(alert.id)}
               onClick={() => onSelect(alert.id)}
             />
           ))}
