@@ -1,21 +1,49 @@
+import { useState } from "react";
+import type { Severity, AlertStatus } from "./types";
+import { useAlerts } from "./hooks/useAlerts";
+import { Header } from "./components/Header";
+import { AlertList } from "./components/AlertList";
+import { AlertDetail } from "./components/AlertDetail";
+
 function App() {
+  const { alerts, isLoading, error, updateAlert} = useAlerts();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [filterSeverity, setFilterSeverity] = useState<Severity | "all">("all");
+  const [filterStatus, setFilterStatus] = useState<AlertStatus | "all">("all");
+
+  const selectedAlert = alerts.find((a) => a.id === selectedId) ?? null;
+
   return (
-    <div className="min-h-screen bg-surface">
-      {/* Temporary placeholder — will be replaced in Step 3 */}
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-3 h-3 rounded-full bg-accent-green animate-pulse" />
-            <span className="font-mono text-sm text-gray-500 uppercase tracking-widest">
-              System Online
-            </span>
-          </div>
-          <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">
-            AI Incident Dashboard
-          </h1>
-          <p className="text-gray-500 font-mono text-sm">
-            Security Operations Center — v1.0.0
-          </p>
+    <div className="flex flex-col h-screen bg-surface overflow-hidden">
+      {/* Top header bar */}
+      <Header
+        alertCount={alerts.length}
+        isConnected={false}
+      />
+
+      {/* Main content: two-panel layout */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left panel: Alert list */}
+        <div className="w-full max-w-sm border-r border-surface-border flex flex-col shrink-0">
+          <AlertList
+            alerts={alerts}
+            isLoading={isLoading}
+            error={error}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+            filterSeverity={filterSeverity}
+            filterStatus={filterStatus}
+            onFilterSeverity={setFilterSeverity}
+            onFilterStatus={setFilterStatus}
+          />
+        </div>
+
+        {/* Right panel: Alert detail */}
+        <div className="flex-1 glass-panel rounded-none border-0">
+          <AlertDetail
+            alert={selectedAlert}
+            onAlertUpdated={updateAlert}
+          />
         </div>
       </div>
     </div>
